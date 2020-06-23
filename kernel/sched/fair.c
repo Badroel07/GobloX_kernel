@@ -82,8 +82,8 @@ walt_dec_cfs_rq_stats(struct cfs_rq *cfs_rq, struct task_struct *p) {}
  * (to see the precise effective timeslice length of your workload,
  *  run vmstat and monitor the context-switches (cs) field)
  */
-unsigned int sysctl_sched_latency = 6000000ULL;
-unsigned int normalized_sysctl_sched_latency = 6000000ULL;
+unsigned int sysctl_sched_latency			= 10000000ULL;
+unsigned int normalized_sysctl_sched_latency		= 10000000ULL;
 
 unsigned int sysctl_sched_is_big_little = 1;
 unsigned int sysctl_sched_sync_hint_enable = 1;
@@ -103,20 +103,33 @@ unsigned int sysctl_sched_use_walt_task_util = 1;
  * SCHED_TUNABLESCALING_LOG - scaled logarithmical, *1+ilog(ncpus)
  * SCHED_TUNABLESCALING_LINEAR - scaled linear, *ncpus
  */
+<<<<<<< HEAD
 enum sched_tunable_scaling sysctl_sched_tunable_scaling
 	= SCHED_TUNABLESCALING_LOG;
+=======
+enum sched_tunable_scaling sysctl_sched_tunable_scaling = SCHED_TUNABLESCALING_NONE;
+>>>>>>> 4d802f8e89c3 (sched: Ideally use 10ms scheduling periods)
 
 /*
  * Minimal preemption granularity for CPU-bound tasks:
  * (default: 0.75 msec * (1 + ilog(ncpus)), units: nanoseconds)
  */
+<<<<<<< HEAD
 unsigned int sysctl_sched_min_granularity = 750000ULL;
 unsigned int normalized_sysctl_sched_min_granularity = 750000ULL;
+=======
+unsigned int sysctl_sched_min_granularity		= 1000000ULL;
+unsigned int normalized_sysctl_sched_min_granularity	= 1000000ULL;
+>>>>>>> 4d802f8e89c3 (sched: Ideally use 10ms scheduling periods)
 
 /*
  * is kept at sysctl_sched_latency / sysctl_sched_min_granularity
  */
+<<<<<<< HEAD
 static unsigned int sched_nr_latency = 8;
+=======
+static unsigned int sched_nr_latency = 10;
+>>>>>>> 4d802f8e89c3 (sched: Ideally use 10ms scheduling periods)
 
 /*
  * After fork, child runs first. If set to 0 (default) then
