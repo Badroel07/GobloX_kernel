@@ -3425,7 +3425,27 @@ int ext4_dax_get_block(struct inode *inode, sector_t iblock,
 	if (ret < 0)
 		return ret;
 
+<<<<<<< HEAD
 	if (buffer_unwritten(bh_result)) {
+=======
+		/*
+		 * We check here if the blocks are already allocated, then we
+		 * don't need to start a journal txn and we can directly return
+		 * the mapping information. This could boost performance
+		 * especially in multi-threaded overwrite requests.
+		 */
+		if (offset + length <= i_size_read(inode)) {
+			ret = ext4_map_blocks(NULL, inode, &map, 0);
+			if (ret > 0 && (map.m_flags & EXT4_MAP_MAPPED))
+				goto out;
+		}
+
+		/* Trim mapping request to maximum we can map at once for DIO */
+		if (map.m_len > DIO_MAX_BLOCKS)
+			map.m_len = DIO_MAX_BLOCKS;
+		dio_credits = ext4_chunk_trans_blocks(inode, map.m_len);
+retry:
+>>>>>>> e4cb797252b7 (BACKPORT: ext4: optimize file overwrites)
 		/*
 		 * We are protected by i_mmap_sem or i_mutex so we know block
 		 * cannot go away from under us even though we dropped
@@ -3437,11 +3457,40 @@ int ext4_dax_get_block(struct inode *inode, sector_t iblock,
 		if (ret < 0)
 			return ret;
 	}
+<<<<<<< HEAD
 	/*
 	 * At least for now we have to clear BH_New so that DAX code
 	 * doesn't attempt to zero blocks again in a racy way.
 	 */
 	clear_buffer_new(bh_result);
+=======
+
+out:
+	iomap->flags = 0;
+	iomap->bdev = inode->i_sb->s_bdev;
+	iomap->dax_dev = sbi->s_daxdev;
+	iomap->offset = first_block << blkbits;
+
+	if (ret == 0) {
+		iomap->type = IOMAP_HOLE;
+		iomap->blkno = IOMAP_NULL_BLOCK;
+		iomap->length = (u64)map.m_len << blkbits;
+	} else {
+		if (map.m_flags & EXT4_MAP_MAPPED) {
+			iomap->type = IOMAP_MAPPED;
+		} else if (map.m_flags & EXT4_MAP_UNWRITTEN) {
+			iomap->type = IOMAP_UNWRITTEN;
+		} else {
+			WARN_ON_ONCE(1);
+			return -EIO;
+		}
+		iomap->blkno = (sector_t)map.m_pblk << (blkbits - 9);
+		iomap->length = (u64)map.m_len << blkbits;
+	}
+
+	if (map.m_flags & EXT4_MAP_NEW)
+		iomap->flags |= IOMAP_F_NEW;
+>>>>>>> e4cb797252b7 (BACKPORT: ext4: optimize file overwrites)
 	return 0;
 }
 #else
