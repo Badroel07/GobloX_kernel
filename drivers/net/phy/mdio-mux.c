@@ -86,6 +86,17 @@ out:
 
 static int parent_count;
 
+static void mdio_mux_uninit_children(struct mdio_mux_parent_bus *pb)
+{
+	struct mdio_mux_child_bus *cb = pb->children;
+
+	while (cb) {
+		mdiobus_unregister(cb->mii_bus);
+		mdiobus_free(cb->mii_bus);
+		cb = cb->next;
+	}
+}
+
 int mdio_mux_init(struct device *dev,
 		  int (*switch_fn)(int cur, int desired, void *data),
 		  void **mux_handle,
@@ -144,8 +155,12 @@ int mdio_mux_init(struct device *dev,
 			dev_err(dev,
 				"Error: Failed to allocate memory for child\n");
 			ret_val = -ENOMEM;
+<<<<<<< HEAD
 			of_node_put(child_bus_node);
 			break;
+=======
+			goto err_loop;
+>>>>>>> 1757014dd551 (net: mdio-mux: Don't ignore memory allocation errors)
 		}
 		cb->bus_number = v;
 		cb->parent = pb;
@@ -153,9 +168,13 @@ int mdio_mux_init(struct device *dev,
 		cb->mii_bus = mdiobus_alloc();
 		if (!cb->mii_bus) {
 			ret_val = -ENOMEM;
+<<<<<<< HEAD
 			devm_kfree(dev, cb);
 			of_node_put(child_bus_node);
 			break;
+=======
+			goto err_loop;
+>>>>>>> 1757014dd551 (net: mdio-mux: Don't ignore memory allocation errors)
 		}
 		cb->mii_bus->priv = cb;
 
@@ -181,6 +200,10 @@ int mdio_mux_init(struct device *dev,
 	}
 
 	devm_kfree(dev, pb);
+
+err_loop:
+	mdio_mux_uninit_children(pb);
+	of_node_put(child_bus_node);
 err_pb_kz:
 	/* balance the reference of_mdio_find_bus() took */
 	if (!mux_bus)
@@ -194,15 +217,12 @@ EXPORT_SYMBOL_GPL(mdio_mux_init);
 void mdio_mux_uninit(void *mux_handle)
 {
 	struct mdio_mux_parent_bus *pb = mux_handle;
-	struct mdio_mux_child_bus *cb = pb->children;
 
-	while (cb) {
-		mdiobus_unregister(cb->mii_bus);
-		mdiobus_free(cb->mii_bus);
-		cb = cb->next;
-	}
-
+<<<<<<< HEAD
 	/* balance the reference of_mdio_find_bus() in mdio_mux_init() took */
+=======
+	mdio_mux_uninit_children(pb);
+>>>>>>> 1757014dd551 (net: mdio-mux: Don't ignore memory allocation errors)
 	put_device(&pb->mii_bus->dev);
 }
 EXPORT_SYMBOL_GPL(mdio_mux_uninit);
